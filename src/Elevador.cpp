@@ -5,4 +5,119 @@ Elevador::Elevador(){
     porta_status = Porta::FECHADA;
     elevador_chegada = Chegada::NAO;
     estado = EstadoElevador::PARADO;
+    for(int i = 0; i < TOTAL_ANDARES; i++){
+        andarDestino[i] = false;
+    }
+}
+
+void Elevador::abrirPorta(){
+    porta_status = Porta::ABERTA;
+}
+
+void Elevador::fecharPorta(){
+    porta_status = Porta::FECHADA;
+}
+
+int Elevador::moverElevador(){
+    switch(estado){
+        case EstadoElevador::PARADO:
+            // Varre todos os andares procurando a primeira chamada ativa
+            for (int i = 0; i <= ULTIMO_ANDAR; i++) {
+                if (andarDestino[i] == true) {
+                    // Define a direção inicial do elevador com base na posição atual e no destino
+                    if (i > andar_atual) {
+                        estado = EstadoElevador::SUBINDO;
+                    } else if (i < andar_atual) {
+                        estado = EstadoElevador::DESCENDO;
+                    }
+                    break;
+                }
+            }
+            break;
+        case EstadoElevador::SUBINDO:
+            bool tem_chamada_acima = false;
+            // Varre apenas para cima
+            for (int i = andar_atual + 1; i <= ULTIMO_ANDAR; i++) {
+                if (andarDestino[i] == true) {
+                    // MOVE O ELEVADOR E ACIONA OS LEDS
+                    andar_atual = static_cast<Andar>(i);
+                    andarDestino[i] = false;
+                    elevador_chegada = Chegada::SIM;
+                    tem_chamada_acima = true;
+                    break;
+                }
+            }
+            
+            // Se acabou a subida, verifica se deve descer ou parar
+            if (!tem_chamada_acima) {
+                if (existemChamadasAbaixo()) {
+                    estado = EstadoElevador::DESCENDO;
+                } else {
+                    estado = EstadoElevador::PARADO;
+                }
+            }
+            break;
+        case EstadoElevador::DESCENDO:
+            bool tem_chamada_abaixo = false;
+            // Varre apenas para baixo
+            for (int i = andar_atual - 1; i >= 0; i--) {
+                if (andarDestino[i] == true) {
+                    // MOVE O ELEVADOR E ACIONA OS LEDS
+                    andar_atual = static_cast<Andar>(i);
+                    andarDestino[i] = false;
+                    elevador_chegada = Chegada::SIM;
+                    tem_chamada_abaixo = true;
+                    break;
+                }
+            }
+            
+            // Se acabou a descida, verifica se deve subir ou parar
+            if (!tem_chamada_abaixo) {
+                if (existemChamadasAcima()) {
+                    estado = EstadoElevador::SUBINDO;
+                } else {
+                    estado = EstadoElevador::PARADO;
+                }
+            }
+            break;
+    }
+    return andar_atual;
+}
+
+int Elevador::getAndarAtual(){
+    return andar_atual;
+}
+
+bool Elevador::getPortaStatus(){
+    return porta_status;
+}
+
+bool Elevador::getElevadorChegada(){
+    return elevador_chegada;
+}
+
+void Elevador::setAndarDestino(int andar){
+    andarDestino[andar] = true;
+}
+
+void Elevador::setElevadorChegada(bool chegada){
+    elevador_chegada = static_cast<Chegada>(chegada);
+}
+
+bool Elevador::existemChamadasAbaixo(){
+    for (int i = andar_atual - 1; i >= 0; i--) {
+        if (andarDestino[i] == true) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool Elevador::existemChamadasAcima(){
+    for (int i = andar_atual + 1; i <= ULTIMO_ANDAR; i++) {
+        if (andarDestino[i] == true) {
+            return true;
+        }
+    }
+    return false;
 }

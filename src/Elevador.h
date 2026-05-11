@@ -1,28 +1,27 @@
 #ifndef ELEVADOR_H
 #define ELEVADOR_H
 #include <Arduino.h>
-#define ULTIMO_ANDAR 4
+#define ULTIMO_ANDAR 3
 #define TOTAL_ANDARES (ULTIMO_ANDAR + 1)
 
-enum class Andar{
+enum Andar{
   TERREO = 0,
   SEGUNDO = 1,
   TERCEIRO = 2,
-  QUARTO = 3,
-  QUINTO = 4
+  QUARTO = 3
 };
 
-enum class Porta{
+enum Porta{
   ABERTA = true,
   FECHADA = false
 };
 
-enum class Chegada{
+enum Chegada{
   SIM = true,
   NAO = false
 };
 
-enum class EstadoElevador{
+enum EstadoElevador{
   PARADO = 0,
   SUBINDO = 1,
   DESCENDO = 2
@@ -40,9 +39,13 @@ class Elevador{
     Elevador();
     void abrirPorta();
     void fecharPorta();
-    void moverElevador();
+    int moverElevador();
     int getAndarAtual();
     bool getPortaStatus();
     bool getElevadorChegada();
+    void setAndarDestino(int andar);
+    void setElevadorChegada(bool chegada);
+    bool existemChamadasAbaixo();
+    bool existemChamadasAcima();
 };
 #endif
