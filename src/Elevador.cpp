@@ -19,6 +19,7 @@ void Elevador::fecharPorta(){
 }
 
 int Elevador::moverElevador(){
+    elevador_chegada = Chegada::NAO;
     switch(estado){
         case EstadoElevador::PARADO:
             // Varre todos os andares procurando a primeira chamada ativa
@@ -39,6 +40,7 @@ int Elevador::moverElevador(){
             // Varre apenas para cima
             for (int i = andar_atual + 1; i <= ULTIMO_ANDAR; i++) {
                 if (andarDestino[i] == true) {
+                    delay(1000);
                     // MOVE O ELEVADOR E ACIONA OS LEDS
                     andar_atual = static_cast<Andar>(i);
                     andarDestino[i] = false;
@@ -63,6 +65,7 @@ int Elevador::moverElevador(){
             for (int i = andar_atual - 1; i >= 0; i--) {
                 if (andarDestino[i] == true) {
                     // MOVE O ELEVADOR E ACIONA OS LEDS
+                    delay(1000);
                     andar_atual = static_cast<Andar>(i);
                     andarDestino[i] = false;
                     elevador_chegada = Chegada::SIM;
