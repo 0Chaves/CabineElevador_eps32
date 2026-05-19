@@ -39,7 +39,7 @@ class Elevador{
     Elevador();
     void abrirPorta();
     void fecharPorta();
-    int moverElevador();
+    void moverElevador();
     int getAndarAtual();
     bool getPortaStatus();
     bool getElevadorChegada();
