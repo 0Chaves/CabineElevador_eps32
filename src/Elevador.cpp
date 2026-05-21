@@ -1,8 +1,8 @@
 #include "Elevador.h"
 
-Elevador::Elevador(){
+Elevador::Elevador() : sensorMagnetico(19){
     andar_atual = Andar::TERREO;
-    porta_status = Porta::FECHADA;
+    porta_status = Porta::ABERTA;
     elevador_chegada = Chegada::NAO;
     estado = EstadoElevador::PARADO;
     for(int i = 0; i < TOTAL_ANDARES; i++){
@@ -10,16 +10,18 @@ Elevador::Elevador(){
     }
 }
 
-void Elevador::abrirPorta(){
-    porta_status = Porta::ABERTA;
+void Elevador::initSensor(){
+    sensorMagnetico.init();
 }
 
-void Elevador::fecharPorta(){
-    porta_status = Porta::FECHADA;
+int Elevador::getPortaStatus(){
+    porta_status = static_cast<Porta>(sensorMagnetico.readStatus());
+    return porta_status;
 }
 
 void Elevador::moverElevador(){
     elevador_chegada = Chegada::NAO;
+    getPortaStatus();
     switch(estado){
         case EstadoElevador::PARADO:
             // Varre todos os andares procurando a primeira chamada ativa
@@ -40,12 +42,18 @@ void Elevador::moverElevador(){
             // Varre apenas para cima
             for (int i = andar_atual + 1; i <= ULTIMO_ANDAR; i++) {
                 if (andarDestino[i] == true) {
-                    delay(1000);
+                    while(sensorMagnetico.readStatus() == HIGH){
+                        delay(100);
+                    }
+                    delay(1500);
                     andar_atual = static_cast<Andar>(i);
                     andarDestino[i] = false;
                     elevador_chegada = Chegada::SIM;
+                    while(sensorMagnetico.readStatus() == LOW){
+                        delay(100);
+                    }
+                    porta_status = Porta::ABERTA;
                     tem_chamada_acima = true;
-                    //abrir porta
                     break;
                 }
             }
@@ -64,12 +72,18 @@ void Elevador::moverElevador(){
             // Varre apenas para baixo
             for (int i = andar_atual - 1; i >= 0; i--) {
                 if (andarDestino[i] == true) {
+                    while(sensorMagnetico.readStatus() == HIGH){
+                        delay(100);
+                    }
                     delay(1000);
                     andar_atual = static_cast<Andar>(i);
                     andarDestino[i] = false;
                     elevador_chegada = Chegada::SIM;
+                    while(sensorMagnetico.readStatus() == LOW){
+                        delay(100);
+                    }
+                    porta_status = Porta::ABERTA;
                     tem_chamada_abaixo = true;
-                    //abrir porta
                     break;
                 }
             }
@@ -88,10 +102,6 @@ void Elevador::moverElevador(){
 
 int Elevador::getAndarAtual(){
     return andar_atual;
-}
-
-bool Elevador::getPortaStatus(){
-    return porta_status;
 }
 
 bool Elevador::getElevadorChegada(){

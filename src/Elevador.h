@@ -1,6 +1,7 @@
 #ifndef ELEVADOR_H
 #define ELEVADOR_H
 #include <Arduino.h>
+#include "Sensor_Magnetico.h"
 #define ULTIMO_ANDAR 3
 #define TOTAL_ANDARES (ULTIMO_ANDAR + 1)
 
@@ -12,8 +13,8 @@ enum Andar{
 };
 
 enum Porta{
-  ABERTA = true,
-  FECHADA = false
+  FECHADA = 0,
+  ABERTA = 1
 };
 
 enum Chegada{
@@ -34,14 +35,14 @@ class Elevador{
     Chegada elevador_chegada;
     bool andarDestino[TOTAL_ANDARES];
     EstadoElevador estado;
-
+    
   public:
+    SensorMagnetico sensorMagnetico;
     Elevador();
-    void abrirPorta();
-    void fecharPorta();
+    void initSensor();
+    int getPortaStatus();
     void moverElevador();
     int getAndarAtual();
-    bool getPortaStatus();
     bool getElevadorChegada();
     void setAndarDestino(int andar);
     void setElevadorChegada(bool chegada);

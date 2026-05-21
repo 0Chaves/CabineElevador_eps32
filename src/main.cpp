@@ -1,10 +1,11 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include <PubSubClient.h>
+#include <ArduinoJson.h>
 #include "Elevador.h"
 #include "Button.h"
 #include "Led.h"
-#include <ArduinoJson.h>
+
 
 #define MSG_SIZE 1024
 
@@ -18,8 +19,8 @@ DynamicJsonDocument doc_send(MSG_SIZE);
 // Broker MQTT
 const char* mqtt_server = "192.168.1.114";
 const int mqtt_port = 1883;
-const char* pub_topic = "elevador/estado";
-const char* sub_topic = "hall/chamada_andar";
+const char* pub_topic = "grupo5/elevador/estado";
+const char* sub_topic = "grupo5/hall/chamada_andar";
 
 // Prepara o cliente MQTT
 WiFiClient espClient;
@@ -136,16 +137,17 @@ void setup() {
   for (int i = 0; i < TOTAL_ANDARES; i++) {
     leds[i].init();
   }
+  elevador.initSensor();
 }
 
 void loop() {
 
-  //verify_wifi();
+  verify_wifi();
 
-  // if(!mqttClient.connected()){
-  //   reconnect_mqtt();
-  // }
-  // mqttClient.loop();
+  if(!mqttClient.connected()){
+    reconnect_mqtt();
+  }
+  mqttClient.loop();
 
   //TODO: Verificar se o botão funciona a qualquer momento ja que esta chamada esta no começo do loop e nao dentro de uma condicional. Talvez seja necessario criar uma tarefa separada para isso.
   for (int i = 0; i < TOTAL_ANDARES; i++) {
@@ -154,15 +156,15 @@ void loop() {
     }
   }
   elevador.moverElevador();
-  //doc_send.clear();
-  //doc_send["andar_atual"] = elevador.getAndarAtual();
-  //doc_send["porta_status"] = elevador.getPortaStatus();
-  //doc_send["elevador_chegada"] = elevador.getElevadorChegada();
-  // if(serializeAndSend(pub_topic)){
-  //   Serial.println("Estado do elevador enviado com sucesso!");
-  // } else {
-  //   Serial.println("Falha ao enviar estado do elevador.");
-  // }
+  doc_send.clear();
+  doc_send["andar_atual"] = elevador.getAndarAtual();
+  doc_send["porta_status"] = elevador.getPortaStatus();
+  doc_send["elevador_chegada"] = elevador.getElevadorChegada();
+  if(serializeAndSend(pub_topic)){
+    Serial.println("Estado do elevador enviado com sucesso!");
+  } else {
+    Serial.println("Falha ao enviar estado do elevador.");
+  }
 
   for (int i = 0; i < TOTAL_ANDARES; i++) {
     if (elevador.getAndarAtual() == i) {
@@ -171,4 +173,6 @@ void loop() {
       leds[i].desligar();
     }
   }
+
+  delay(1000);
 }
