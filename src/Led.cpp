@@ -7,6 +7,7 @@ Led::Led(int p){
 
 void Led::init() {
   pinMode(pino, OUTPUT);
+  desligar();
 }
 
 bool Led::ligar(){

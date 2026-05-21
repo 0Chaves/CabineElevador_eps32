@@ -2,8 +2,10 @@
 #define ELEVADOR_H
 #include <Arduino.h>
 #include "Sensor_Magnetico.h"
+#include "Led.h"
 #define ULTIMO_ANDAR 3
 #define TOTAL_ANDARES (ULTIMO_ANDAR + 1)
+#define relePin 18
 
 enum Andar{
   TERREO = 0,
@@ -41,7 +43,7 @@ class Elevador{
     Elevador();
     void initSensor();
     int getPortaStatus();
-    void moverElevador();
+    void moverElevador(Led* leds);
     int getAndarAtual();
     bool getElevadorChegada();
     void setAndarDestino(int andar);

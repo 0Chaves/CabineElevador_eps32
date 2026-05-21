@@ -8,6 +8,8 @@ Elevador::Elevador() : sensorMagnetico(19){
     for(int i = 0; i < TOTAL_ANDARES; i++){
         andarDestino[i] = false;
     }
+    pinMode(relePin, OUTPUT);
+    digitalWrite(relePin, LOW);
 }
 
 void Elevador::initSensor(){
@@ -19,11 +21,11 @@ int Elevador::getPortaStatus(){
     return porta_status;
 }
 
-void Elevador::moverElevador(){
+void Elevador::moverElevador(Led* leds){
     elevador_chegada = Chegada::NAO;
     getPortaStatus();
     switch(estado){
-        case EstadoElevador::PARADO:
+        case EstadoElevador::PARADO:{
             // Varre todos os andares procurando a primeira chamada ativa
             for (int i = 0; i <= ULTIMO_ANDAR; i++) {
                 if (andarDestino[i] == true) {
@@ -37,15 +39,22 @@ void Elevador::moverElevador(){
                 }
             }
             break;
-        case EstadoElevador::SUBINDO:
+        }
+        case EstadoElevador::SUBINDO:{
             bool tem_chamada_acima = false;
+            digitalWrite(relePin, LOW);
             // Varre apenas para cima
             for (int i = andar_atual + 1; i <= ULTIMO_ANDAR; i++) {
                 if (andarDestino[i] == true) {
                     while(sensorMagnetico.readStatus() == HIGH){
                         delay(100);
                     }
-                    delay(1500);
+                    for(int j = andar_atual; j < i; j++){
+                        delay(1000);
+                        leds[j].desligar();
+                        delay(1000);
+                        leds[j+1].ligar();
+                    }
                     andar_atual = static_cast<Andar>(i);
                     andarDestino[i] = false;
                     elevador_chegada = Chegada::SIM;
@@ -54,6 +63,7 @@ void Elevador::moverElevador(){
                     }
                     porta_status = Porta::ABERTA;
                     tem_chamada_acima = true;
+                    digitalWrite(relePin, HIGH);
                     break;
                 }
             }
@@ -67,15 +77,22 @@ void Elevador::moverElevador(){
                 }
             }
             break;
-        case EstadoElevador::DESCENDO:
+        }
+        case EstadoElevador::DESCENDO: {
             bool tem_chamada_abaixo = false;
+            digitalWrite(relePin, LOW);
             // Varre apenas para baixo
             for (int i = andar_atual - 1; i >= 0; i--) {
                 if (andarDestino[i] == true) {
                     while(sensorMagnetico.readStatus() == HIGH){
                         delay(100);
                     }
-                    delay(1000);
+                    for(int j = andar_atual; j > i; j--){
+                        delay(1000);
+                        leds[j].desligar();
+                        delay(1000);
+                        leds[j-1].ligar();
+                    }
                     andar_atual = static_cast<Andar>(i);
                     andarDestino[i] = false;
                     elevador_chegada = Chegada::SIM;
@@ -84,6 +101,7 @@ void Elevador::moverElevador(){
                     }
                     porta_status = Porta::ABERTA;
                     tem_chamada_abaixo = true;
+                    digitalWrite(relePin, HIGH);
                     break;
                 }
             }
@@ -97,6 +115,7 @@ void Elevador::moverElevador(){
                 }
             }
             break;
+        }
     }
 }
 

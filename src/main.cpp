@@ -1,3 +1,6 @@
+//TODO: buzzer para chegada
+
+
 #include <Arduino.h>
 #include <WiFi.h>
 #include <PubSubClient.h>
@@ -6,14 +9,13 @@
 #include "Button.h"
 #include "Led.h"
 
-
 #define MSG_SIZE 1024
 
 const char* ssid = "ProjetoMInDS";
 const char* password = "Doi39x-Wa!";
 
 // JSON
-DynamicJsonDocument doc(MSG_SIZE);
+JsonDocument doc;
 DynamicJsonDocument doc_send(MSG_SIZE);
 
 // Broker MQTT
@@ -137,6 +139,7 @@ void setup() {
   for (int i = 0; i < TOTAL_ANDARES; i++) {
     leds[i].init();
   }
+  leds[0].ligar();
   elevador.initSensor();
 }
 
@@ -155,7 +158,7 @@ void loop() {
       elevador.setAndarDestino(i);
     }
   }
-  elevador.moverElevador();
+  elevador.moverElevador(leds);
   doc_send.clear();
   doc_send["andar_atual"] = elevador.getAndarAtual();
   doc_send["porta_status"] = elevador.getPortaStatus();
