@@ -1,6 +1,4 @@
 //TODO: buzzer para chegada
-
-
 #include <Arduino.h>
 #include <WiFi.h>
 #include <PubSubClient.h>
@@ -29,7 +27,7 @@ WiFiClient espClient;
 PubSubClient mqttClient(espClient);
 
 Button buttons[TOTAL_ANDARES] = {
-  Button(5),
+  Button(21),
   Button(4),
   Button(2),
   Button(15)
@@ -127,12 +125,22 @@ void reconnect_mqtt(){
   }
 }
 
+void readButtons(){
+  for (int i = 0; i < TOTAL_ANDARES; i++) {
+    if (buttons[i].readStatus() == HIGH) {
+      Serial.print("Botão pressionado no andar: ");
+      Serial.println(i);
+      elevador.setAndarDestino(i);
+    }
+  }
+}
+
 
 void setup() {
   Serial.begin(115200);
-  //verify_wifi();
-  //setup_mqtt();
-  //initializeJson();
+  verify_wifi();
+  setup_mqtt();
+  initializeJson();
   for (int i = 0; i < TOTAL_ANDARES; i++) {
     buttons[i].init();
   }
@@ -146,19 +154,17 @@ void setup() {
 void loop() {
 
   verify_wifi();
-
   if(!mqttClient.connected()){
     reconnect_mqtt();
   }
   mqttClient.loop();
 
-  //TODO: Verificar se o botão funciona a qualquer momento ja que esta chamada esta no começo do loop e nao dentro de uma condicional. Talvez seja necessario criar uma tarefa separada para isso.
-  for (int i = 0; i < TOTAL_ANDARES; i++) {
-    if (buttons[i].readStatus() == HIGH) {
-      elevador.setAndarDestino(i);
-    }
-  }
-  elevador.moverElevador(leds);
+  Serial.println("Elevador parado no andar: " + String(elevador.getAndarAtual()));
+  readButtons();
+
+  elevador.moverElevador(leds, readButtons);
+
+  //Montar Json ao final do movimento do elevador e enviar para o mqtt
   doc_send.clear();
   doc_send["andar_atual"] = elevador.getAndarAtual();
   doc_send["porta_status"] = elevador.getPortaStatus();
@@ -177,5 +183,5 @@ void loop() {
     }
   }
 
-  delay(1000);
+  delay(3000);
 }

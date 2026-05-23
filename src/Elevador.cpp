@@ -9,7 +9,7 @@ Elevador::Elevador() : sensorMagnetico(19){
         andarDestino[i] = false;
     }
     pinMode(relePin, OUTPUT);
-    digitalWrite(relePin, LOW);
+    digitalWrite(relePin, HIGH);
 }
 
 void Elevador::initSensor(){
@@ -21,13 +21,21 @@ int Elevador::getPortaStatus(){
     return porta_status;
 }
 
-void Elevador::moverElevador(Led* leds){
+void Elevador::moverElevador(Led* leds, void (*readButtons)()){
+    delay(2000);
     elevador_chegada = Chegada::NAO;
-    getPortaStatus();
+    // getPortaStatus();
     switch(estado){
         case EstadoElevador::PARADO:{
+            Serial.println("Elevador parado. Verificando chamadas...");
+            digitalWrite(relePin, HIGH);
             // Varre todos os andares procurando a primeira chamada ativa
             for (int i = 0; i <= ULTIMO_ANDAR; i++) {
+                delay(200);
+                Serial.print("Andar ");
+                Serial.print(i);
+                Serial.print(": ");
+                Serial.println(andarDestino[i] ? "Chamada ativa" : "Sem chamada");
                 if (andarDestino[i] == true) {
                     // Define a direção inicial do elevador com base na posição atual e no destino
                     if (i > andar_atual) {
@@ -42,17 +50,21 @@ void Elevador::moverElevador(Led* leds){
         }
         case EstadoElevador::SUBINDO:{
             bool tem_chamada_acima = false;
-            digitalWrite(relePin, LOW);
             // Varre apenas para cima
             for (int i = andar_atual + 1; i <= ULTIMO_ANDAR; i++) {
                 if (andarDestino[i] == true) {
+                    Serial.println("Elevador subindo.");
                     while(sensorMagnetico.readStatus() == HIGH){
                         delay(100);
                     }
+                    digitalWrite(relePin, LOW);
                     for(int j = andar_atual; j < i; j++){
-                        delay(1000);
+                        readButtons();
+                        delay(2000);
+                        readButtons();
                         leds[j].desligar();
-                        delay(1000);
+                        delay(2000);
+                        readButtons();
                         leds[j+1].ligar();
                     }
                     andar_atual = static_cast<Andar>(i);
@@ -80,17 +92,21 @@ void Elevador::moverElevador(Led* leds){
         }
         case EstadoElevador::DESCENDO: {
             bool tem_chamada_abaixo = false;
-            digitalWrite(relePin, LOW);
             // Varre apenas para baixo
             for (int i = andar_atual - 1; i >= 0; i--) {
                 if (andarDestino[i] == true) {
+                    Serial.println("Elevador descendo.");
                     while(sensorMagnetico.readStatus() == HIGH){
                         delay(100);
                     }
+                    digitalWrite(relePin, LOW);
                     for(int j = andar_atual; j > i; j--){
-                        delay(1000);
+                        readButtons();
+                        delay(2000);
+                        readButtons();
                         leds[j].desligar();
-                        delay(1000);
+                        delay(2000);
+                        readButtons();
                         leds[j-1].ligar();
                     }
                     andar_atual = static_cast<Andar>(i);

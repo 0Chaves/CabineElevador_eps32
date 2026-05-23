@@ -43,7 +43,7 @@ class Elevador{
     Elevador();
     void initSensor();
     int getPortaStatus();
-    void moverElevador(Led* leds);
+    void moverElevador(Led* leds, void (*readButtons)());
     int getAndarAtual();
     bool getElevadorChegada();
     void setAndarDestino(int andar);
