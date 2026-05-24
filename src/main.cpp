@@ -143,8 +143,6 @@ void setup() {
   initializeJson();
   for (int i = 0; i < TOTAL_ANDARES; i++) {
     buttons[i].init();
-  }
-  for (int i = 0; i < TOTAL_ANDARES; i++) {
     leds[i].init();
   }
   leds[0].ligar();
